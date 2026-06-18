@@ -75,7 +75,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   return (
     <div className="flex flex-col h-full max-w-[430px] mx-auto relative overflow-hidden">
       {/* ヘッダー */}
-      <header className="h-14 bg-primary text-primary-foreground flex items-center justify-between px-4 shrink-0 z-50">
+      <header className="h-14 bg-gray-100 text-gray-800 flex items-center justify-between px-4 shrink-0 z-50">
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <span>🌾</span> 稲藁進捗管理
         </h1>
