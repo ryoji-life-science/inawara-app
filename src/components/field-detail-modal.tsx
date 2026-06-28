@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useRef } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import type { Field, StatusKey } from '@/lib/types'
 import { STATUSES, getStatusIndex } from '@/lib/constants'
 import { updateFieldStatus, updateField, deleteField } from '@/actions/fields'
@@ -28,6 +28,12 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
 
   const panelRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef(0)
+
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
 
   const currentIdx = getStatusIndex(field.status)
   const normalizedMemo = memo.trim()
