@@ -35,6 +35,19 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
     return () => { document.body.style.overflow = prev }
   }, [])
 
+  useEffect(() => {
+    const panel = panelRef.current
+    if (!panel) return
+    const onMove = (e: TouchEvent) => {
+      const deltaY = e.touches[0].clientY - touchStartY.current
+      if (panel.scrollTop === 0 && deltaY > 0) {
+        e.preventDefault()
+      }
+    }
+    panel.addEventListener('touchmove', onMove, { passive: false })
+    return () => panel.removeEventListener('touchmove', onMove)
+  }, [])
+
   const currentIdx = getStatusIndex(field.status)
   const normalizedMemo = memo.trim()
   const hasMemoChanged = normalizedMemo !== field.memo.trim()
