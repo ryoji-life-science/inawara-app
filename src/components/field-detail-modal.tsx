@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef } from 'react'
 import type { Field, StatusKey } from '@/lib/types'
 import { STATUSES, getStatusIndex } from '@/lib/constants'
 import { updateFieldStatus, updateField, deleteField } from '@/actions/fields'
@@ -25,6 +25,9 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
   const [isPending, startTransition] = useTransition()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const panelRef = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef(0)
 
   const currentIdx = getStatusIndex(field.status)
   const normalizedMemo = memo.trim()
@@ -82,6 +85,18 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
     })
   }
 
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function handleTouchMove(e: React.TouchEvent) {
+    if (isPending || !panelRef.current) return
+    const deltaY = e.touches[0].clientY - touchStartY.current
+    if (deltaY > 60 && panelRef.current.scrollTop === 0) {
+      handleSaveMemo()
+    }
+  }
+
   function handleDelete() {
     setError(null)
     startTransition(async () => {
@@ -103,7 +118,12 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
         handleSaveMemo()
       }}
     >
-      <div className="bg-card rounded-t-2xl w-full max-w-[430px] max-h-[85vh] overflow-y-auto p-5 animate-in slide-in-from-bottom duration-300">
+      <div
+        ref={panelRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        className="bg-card rounded-t-2xl w-full max-w-[430px] max-h-[85vh] overflow-y-auto p-5 animate-in slide-in-from-bottom duration-300"
+      >
         {/* ハンドル */}
         <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
 
