@@ -9,6 +9,7 @@ import { StatusFilter } from './status-filter'
 import { StatusSummary } from './status-summary'
 import { FieldList } from './field-list'
 import { FieldDetailModal } from './field-detail-modal'
+import { FieldLogModal } from './field-log-modal'
 import { FieldCreateDialog } from './field-create-dialog'
 import { FieldAdmin } from './field-admin'
 import { Map as MapIcon, List, Settings } from 'lucide-react'
@@ -27,6 +28,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   const [viewMode, setViewMode] = useState<ViewMode>('split')
   const [filter, setFilter] = useState<StatusKey | 'all'>('all')
   const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null)
+  const [logFieldId, setLogFieldId] = useState<number | null>(null)
   const [createPosition, setCreatePosition] = useState<{ lat: number; lng: number } | null>(null)
   const [hiddenFieldIds, setHiddenFieldIds] = useState<Set<number>>(new Set())
 
@@ -153,7 +155,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
             <StatusSummary fields={initialFields} />
             <FieldList
               fields={initialFields}
-              onFieldClick={handleFieldClick}
+              onFieldClick={(id) => setLogFieldId(id)}
               hiddenFieldIds={hiddenFieldIds}
             />
           </div>
@@ -215,6 +217,12 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
           onToggleVisibility={handleToggleVisibility}
         />
       )}
+
+      {/* ログモーダル（一覧タブ用） */}
+      {logFieldId && (() => {
+        const f = initialFields.find(f => f.id === logFieldId)
+        return f ? <FieldLogModal key={f.id} field={f} onClose={() => setLogFieldId(null)} /> : null
+      })()}
 
       {/* 新規圃場登録ダイアログ */}
       {createPosition && (

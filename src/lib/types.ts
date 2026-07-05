@@ -18,6 +18,7 @@ export type Field = {
   memo: string
   reporter: string
   updated_at: string
+  memo_updated_at: string | null
   created_at: string
 }
 

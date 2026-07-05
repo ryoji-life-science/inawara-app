@@ -52,6 +52,7 @@ export async function initDb() {
         created_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `)
+    await db.execute(`ALTER TABLE fields ADD COLUMN memo_updated_at TEXT`).catch(() => {})
   })()
 
   try {

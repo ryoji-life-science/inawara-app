@@ -118,6 +118,7 @@ function toField(row: Record<string, unknown>): Field {
     memo: readString(row, 'memo', 'メモ'),
     reporter: readString(row, 'reporter', '記録者'),
     updated_at: readString(row, 'updated_at', '更新日時'),
+    memo_updated_at: typeof row.memo_updated_at === 'string' ? row.memo_updated_at : null,
     created_at: readString(row, 'created_at', '作成日時'),
   }
 }
@@ -125,7 +126,7 @@ function toField(row: Record<string, unknown>): Field {
 export async function getFields(): Promise<Field[]> {
   await ensureTable()
   const result = await db.execute(
-    'SELECT id, name, farmer, latitude, longitude, status, memo, reporter, updated_at, created_at FROM fields ORDER BY name ASC'
+    'SELECT id, name, farmer, latitude, longitude, status, memo, reporter, updated_at, memo_updated_at, created_at FROM fields ORDER BY name ASC'
   )
   return result.rows.map((row) => toField(row as Record<string, unknown>))
 }
@@ -179,17 +180,20 @@ export async function updateField(id: number, data: UpdateFieldInput): Promise<v
       value: normalizeOptionalText(data.farmer, '地区名', MAX_FARMER_LENGTH),
     })
   }
+  let memoChanged = false
   if (data.memo !== undefined) {
     updates.push({
       sql: 'memo = ?',
       value: normalizeOptionalText(data.memo, 'メモ', MAX_MEMO_LENGTH),
     })
+    memoChanged = true
   }
 
   if (updates.length === 0) return
 
+  const memoTimestamp = memoChanged ? `, memo_updated_at = datetime('now')` : ''
   await db.execute({
-    sql: `UPDATE fields SET ${updates.map((update) => update.sql).join(', ')}, updated_at = datetime('now') WHERE id = ?`,
+    sql: `UPDATE fields SET ${updates.map((update) => update.sql).join(', ')}, updated_at = datetime('now')${memoTimestamp} WHERE id = ?`,
     args: [...updates.map((update) => update.value), normalizedId],
   })
   revalidatePath('/')
