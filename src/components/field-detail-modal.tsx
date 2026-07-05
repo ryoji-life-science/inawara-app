@@ -236,22 +236,13 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
 
         {/* アクション */}
         <div className="mt-5">
-          {currentIdx < STATUSES.length - 1 ? (
-            <button
-              onClick={handleAdvance}
-              disabled={isPending}
-              className="w-full py-3.5 rounded-xl text-[15px] font-semibold bg-primary text-primary-foreground disabled:opacity-50"
-            >
-              → {STATUSES[currentIdx + 1].emoji} {STATUSES[currentIdx + 1].label} へ
-            </button>
-          ) : (
-            <button
-              disabled
-              className="w-full py-3.5 rounded-xl text-[15px] font-semibold bg-[#1565C0] text-white"
-            >
-              ✅ 完了済み
-            </button>
-          )}
+          <button
+            onClick={handleSaveMemo}
+            disabled={isPending}
+            className="w-full py-3.5 rounded-xl text-[15px] font-semibold bg-primary text-primary-foreground disabled:opacity-50"
+          >
+            確定
+          </button>
         </div>
 
         {/* 地図表示切り替え */}
