@@ -185,7 +185,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
       </nav>
 
       {/* バージョン表示 */}
-      <div className="border-2 border-green-600 mx-3 my-1.5 rounded-md py-1 text-center text-[10px] text-green-700 shrink-0">
+      <div className="bg-green-600 text-white px-4 py-1.5 text-[10px] text-right shrink-0">
         v0.1.0
       </div>
 
