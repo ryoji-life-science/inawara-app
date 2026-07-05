@@ -111,7 +111,7 @@ function toField(row: Record<string, unknown>): Field {
   return {
     id: normalizeFieldId(readNumber(row, 'id', '圃場ID')),
     name: readString(row, 'name', '圃場名'),
-    farmer: readString(row, 'farmer', '農家名'),
+    farmer: readString(row, 'farmer', '地区名'),
     latitude: normalizeCoordinate(readNumber(row, 'latitude', '緯度'), '緯度', -90, 90),
     longitude: normalizeCoordinate(readNumber(row, 'longitude', '経度'), '経度', -180, 180),
     status: normalizeStatus(row.status),
@@ -132,7 +132,7 @@ export async function getFields(): Promise<Field[]> {
 
 export async function createField(data: CreateFieldInput): Promise<void> {
   const name = normalizeRequiredText(data.name, '圃場名', MAX_NAME_LENGTH)
-  const farmer = normalizeOptionalText(data.farmer, '農家名', MAX_FARMER_LENGTH)
+  const farmer = normalizeOptionalText(data.farmer, '地区名', MAX_FARMER_LENGTH)
   const latitude = normalizeCoordinate(data.latitude, '緯度', -90, 90)
   const longitude = normalizeCoordinate(data.longitude, '経度', -180, 180)
 
@@ -176,7 +176,7 @@ export async function updateField(id: number, data: UpdateFieldInput): Promise<v
   if (data.farmer !== undefined) {
     updates.push({
       sql: 'farmer = ?',
-      value: normalizeOptionalText(data.farmer, '農家名', MAX_FARMER_LENGTH),
+      value: normalizeOptionalText(data.farmer, '地区名', MAX_FARMER_LENGTH),
     })
   }
   if (data.memo !== undefined) {

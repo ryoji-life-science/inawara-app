@@ -143,7 +143,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
 
         {/* タイトル */}
         <h2 className="text-xl font-bold">{field.name}</h2>
-        <p className="text-sm text-muted-foreground mb-4">👤 {field.farmer}</p>
+        <p className="text-sm text-muted-foreground mb-4">📍 {field.farmer}</p>
 
         {/* ステータスタイムライン */}
         <div className="relative pl-7">

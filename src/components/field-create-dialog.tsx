@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createField } from '@/actions/fields'
+import { DISTRICTS } from '@/lib/constants'
 import { MapPin } from 'lucide-react'
 
 type Props = {
@@ -69,14 +70,17 @@ export function FieldCreateDialog({ lat, lng, onClose, onMutate }: Props) {
           </div>
 
           <div className="mb-5">
-            <label className="block text-xs text-muted-foreground mb-1.5">農家名</label>
-            <input
-              type="text"
+            <label className="block text-xs text-muted-foreground mb-1.5">地区名</label>
+            <select
               value={farmer}
               onChange={(e) => setFarmer(e.target.value)}
-              placeholder="例: 山田太郎"
               className="w-full border border-border rounded-lg px-3 py-2.5 text-sm outline-none focus:border-primary bg-card"
-            />
+            >
+              <option value="">地区名を選択</option>
+              {DISTRICTS.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
 
           {error && (

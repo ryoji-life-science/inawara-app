@@ -26,3 +26,6 @@ export const ALL_STATUS_KEYS: StatusKey[] = STATUSES.map(s => s.key)
 
 export const MAP_CENTER: [number, number] = [36.0860, 133.0870]
 export const MAP_DEFAULT_ZOOM = 14
+
+export const DISTRICTS = ['福井/西', '中里', '東'] as const
+export type District = typeof DISTRICTS[number]
