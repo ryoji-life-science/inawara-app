@@ -35,7 +35,8 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
     (a, b) => getStatusIndex(a.status) - getStatusIndex(b.status) || a.id - b.id
   )
 
-  const completedCount = initialFields.filter((field) => field.status === 'fertilize').length
+  const visibleFields = initialFields.filter((field) => !hiddenFieldIds.has(field.id))
+  const completedCount = visibleFields.filter((field) => field.status === 'fertilize').length
 
   const selectedField = selectedFieldId
     ? initialFields.find((field) => field.id === selectedFieldId) ?? null
@@ -79,7 +80,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <span>🌾</span> 稲藁進捗管理
         </h1>
-        <span className="text-xs opacity-90">完了 {completedCount}/{initialFields.length}</span>
+        <span className="text-xs opacity-90">完了 {completedCount}/{visibleFields.length}</span>
       </header>
 
       {/* メインコンテンツ */}
