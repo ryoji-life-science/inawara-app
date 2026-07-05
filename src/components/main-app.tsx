@@ -10,14 +10,15 @@ import { StatusSummary } from './status-summary'
 import { FieldList } from './field-list'
 import { FieldDetailModal } from './field-detail-modal'
 import { FieldCreateDialog } from './field-create-dialog'
-import { Map as MapIcon, List } from 'lucide-react'
+import { FieldAdmin } from './field-admin'
+import { Map as MapIcon, List, Settings } from 'lucide-react'
 
 const FieldMap = dynamic(() => import('./field-map').then(m => m.FieldMap), {
   ssr: false,
   loading: () => <div className="flex-1 bg-muted animate-pulse" />,
 })
 
-type Tab = 'map' | 'list'
+type Tab = 'map' | 'list' | 'admin'
 type ViewMode = 'map' | 'split' | 'text'
 
 export function MainApp({ initialFields }: { initialFields: Field[] }) {
@@ -149,7 +150,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               )}
             </div>
           </>
-        ) : (
+        ) : tab === 'list' ? (
           /* 一覧タブ */
           <div className="flex-1 overflow-y-auto">
             <StatusSummary fields={initialFields} />
@@ -160,6 +161,9 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               onToggleVisibility={handleToggleVisibility}
             />
           </div>
+        ) : (
+          /* 管理タブ */
+          <FieldAdmin fields={initialFields} onMutate={handleMutate} />
         )}
       </main>
 
@@ -182,6 +186,15 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
         >
           <List className="w-6 h-6" />
           一覧
+        </button>
+        <button
+          onClick={() => setTab('admin')}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] transition-colors ${
+            tab === 'admin' ? 'text-primary' : 'text-muted-foreground'
+          }`}
+        >
+          <Settings className="w-6 h-6" />
+          管理
         </button>
       </nav>
 
