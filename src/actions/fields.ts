@@ -125,7 +125,7 @@ function toField(row: Record<string, unknown>): Field {
 export async function getFields(): Promise<Field[]> {
   await ensureTable()
   const result = await db.execute(
-    'SELECT id, name, farmer, latitude, longitude, status, memo, reporter, updated_at, created_at FROM fields ORDER BY id ASC'
+    'SELECT id, name, farmer, latitude, longitude, status, memo, reporter, updated_at, created_at FROM fields ORDER BY name ASC'
   )
   return result.rows.map((row) => toField(row as Record<string, unknown>))
 }
