@@ -4,7 +4,7 @@ import { useState, useTransition, useRef, useCallback } from 'react'
 import type { Field, StatusKey } from '@/lib/types'
 import { STATUSES, getStatusIndex } from '@/lib/constants'
 import { updateFieldStatus, updateField, deleteField } from '@/actions/fields'
-import { Check, Trash2, Eye, EyeOff } from 'lucide-react'
+import { Check, Trash2, Eye, EyeOff, X } from 'lucide-react'
 
 type Props = {
   field: Field
@@ -138,12 +138,20 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
             : 'animate-in slide-in-from-bottom duration-300'
         }`}
       >
-        {/* ハンドル */}
-        <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
-
-        {/* タイトル */}
-        <h2 className="text-xl font-bold">{field.name}</h2>
-        <p className="text-sm text-muted-foreground mb-4">📍 {field.farmer}</p>
+        {/* ヘッダー */}
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold">{field.name}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">📍 {field.farmer}</p>
+          </div>
+          <button
+            onClick={handleSaveMemo}
+            disabled={isPending}
+            className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground ml-2 disabled:opacity-50"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* ステータスタイムライン */}
         <div className="relative pl-7">
@@ -227,26 +235,19 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
         )}
 
         {/* アクション */}
-        <div className="mt-5 flex gap-2.5">
-          <button
-            onClick={handleSaveMemo}
-            disabled={isPending}
-            className="flex-1 py-3.5 rounded-xl text-[15px] font-semibold bg-muted text-foreground disabled:opacity-50"
-          >
-            閉じる
-          </button>
+        <div className="mt-5">
           {currentIdx < STATUSES.length - 1 ? (
             <button
               onClick={handleAdvance}
               disabled={isPending}
-              className="flex-1 py-3.5 rounded-xl text-[15px] font-semibold bg-primary text-primary-foreground disabled:opacity-50"
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold bg-primary text-primary-foreground disabled:opacity-50"
             >
               → {STATUSES[currentIdx + 1].emoji} {STATUSES[currentIdx + 1].label} へ
             </button>
           ) : (
             <button
               disabled
-              className="flex-1 py-3.5 rounded-xl text-[15px] font-semibold bg-[#1565C0] text-white"
+              className="w-full py-3.5 rounded-xl text-[15px] font-semibold bg-[#1565C0] text-white"
             >
               ✅ 完了済み
             </button>
