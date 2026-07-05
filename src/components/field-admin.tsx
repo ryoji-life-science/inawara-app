@@ -49,7 +49,6 @@ export function FieldAdmin({ fields, onMutate }: Props) {
       <div className="divide-y divide-border">
         {fields.map((field) => (
           <div key={field.id} className="flex items-start gap-3 px-4 py-3">
-            <span className="w-7 text-xs text-muted-foreground text-right shrink-0 pt-1">{field.id}</span>
 
             {editingId === field.id ? (
               <>
