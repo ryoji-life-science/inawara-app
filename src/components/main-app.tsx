@@ -156,12 +156,16 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               fields={initialFields}
               onFieldClick={handleFieldClick}
               hiddenFieldIds={hiddenFieldIds}
-              onToggleVisibility={handleToggleVisibility}
             />
           </div>
         ) : (
           /* 管理タブ */
-          <FieldAdmin fields={initialFields} onMutate={handleMutate} />
+          <FieldAdmin
+            fields={initialFields}
+            onMutate={handleMutate}
+            hiddenFieldIds={hiddenFieldIds}
+            onToggleVisibility={handleToggleVisibility}
+          />
         )}
       </main>
 
