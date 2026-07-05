@@ -184,6 +184,11 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
         </button>
       </nav>
 
+      {/* バージョン表示 */}
+      <div className="border-2 border-green-600 mx-3 my-1.5 rounded-md py-1 text-center text-[10px] text-green-700 shrink-0">
+        v0.1.0
+      </div>
+
       {/* 詳細モーダル */}
       {selectedField && (
         <FieldDetailModal
