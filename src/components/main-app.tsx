@@ -131,7 +131,6 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
                           onClick={() => handleFieldClick(field.id)}
                           className="flex items-center px-3.5 py-2.5 border-b border-muted gap-2 cursor-pointer text-sm active:bg-muted/50"
                         >
-                          <span className="w-5 text-right text-xs text-muted-foreground shrink-0">{field.id}</span>
                           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: st.color }} />
                           <span className="flex-1 font-medium truncate">{field.name}</span>
                           <span className="text-xs text-muted-foreground shrink-0">{field.farmer}</span>
