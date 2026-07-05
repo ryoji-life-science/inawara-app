@@ -114,7 +114,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
     if (touchStartY.current === null) return
     const deltaY = e.changedTouches[0].clientY - touchStartY.current
     const isAtTop = touchStartScrollTop.current === 0
-    if (isAtTop && deltaY < -50) {
+    if (isAtTop && deltaY > 50) {
       handleClose()
     }
     touchStartY.current = null
