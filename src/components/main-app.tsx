@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Field, StatusKey } from '@/lib/types'
-import { getStatus, getStatusIndex } from '@/lib/constants'
+import { getStatus } from '@/lib/constants'
 import { StatusFilter } from './status-filter'
 import { StatusSummary } from './status-summary'
 import { FieldList } from './field-list'
@@ -32,9 +32,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
 
   const filteredFields =
     filter === 'all' ? initialFields : initialFields.filter((field) => field.status === filter)
-  const textListFields = [...filteredFields].sort(
-    (a, b) => getStatusIndex(a.status) - getStatusIndex(b.status) || a.id - b.id
-  )
+  const textListFields = [...filteredFields].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
   const visibleFields = initialFields.filter((field) => !hiddenFieldIds.has(field.id))
   const completedCount = visibleFields.filter((field) => field.status === 'fertilize').length

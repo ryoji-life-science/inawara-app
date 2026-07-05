@@ -1,7 +1,7 @@
 'use client'
 
 import type { Field } from '@/lib/types'
-import { getStatus, getStatusIndex } from '@/lib/constants'
+import { getStatus } from '@/lib/constants'
 import { Eye, EyeOff } from 'lucide-react'
 
 type Props = {
@@ -12,12 +12,7 @@ type Props = {
 }
 
 export function FieldList({ fields, onFieldClick, hiddenFieldIds, onToggleVisibility }: Props) {
-  const sorted = [...fields].sort((a, b) => {
-    const ia = getStatusIndex(a.status)
-    const ib = getStatusIndex(b.status)
-    if (ia !== ib) return ia - ib
-    return a.id - b.id
-  })
+  const sorted = [...fields].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
   return (
     <div className="px-3 pb-3">
