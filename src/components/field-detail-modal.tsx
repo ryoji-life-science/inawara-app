@@ -248,7 +248,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
         {/* 地図表示切り替え */}
         <button
           onClick={() => onToggleVisibility(field.id)}
-          className={`mt-3 w-full py-2.5 rounded-xl text-sm flex items-center justify-center gap-1.5 ${
+          className={`mt-8 w-full py-2.5 rounded-xl text-sm flex items-center justify-center gap-1.5 ${
             isHidden
               ? 'bg-primary/10 text-primary font-semibold'
               : 'bg-muted/50 text-muted-foreground'
