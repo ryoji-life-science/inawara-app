@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useCallback } from 'react'
 import type { Field, StatusKey } from '@/lib/types'
 import { STATUSES, getStatusIndex } from '@/lib/constants'
 import { updateFieldStatus, updateField, deleteField } from '@/actions/fields'
@@ -25,10 +25,20 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
   const [isPending, startTransition] = useTransition()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isClosing, setIsClosing] = useState(false)
+
+  const panelRef = useRef<HTMLDivElement>(null)
+  const touchStartY = useRef<number | null>(null)
+  const touchStartScrollTop = useRef<number>(0)
 
   const currentIdx = getStatusIndex(field.status)
   const normalizedMemo = memo.trim()
   const hasMemoChanged = normalizedMemo !== field.memo.trim()
+
+  const handleClose = useCallback(() => {
+    setIsClosing(true)
+    setTimeout(() => onClose(), 280)
+  }, [onClose])
 
   function persistReporter() {
     const normalizedReporter = reporter.trim()
@@ -49,7 +59,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
       try {
         await updateFieldStatus(field.id, statusKey, normalizedReporter, normalizedMemo)
         onMutate()
-        onClose()
+        handleClose()
       } catch (e) {
         setError(e instanceof Error ? e.message : '更新に失敗しました')
       }
@@ -66,7 +76,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
     persistReporter()
 
     if (!hasMemoChanged) {
-      onClose()
+      handleClose()
       return
     }
 
@@ -75,7 +85,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
       try {
         await updateField(field.id, { memo: normalizedMemo })
         onMutate()
-        onClose()
+        handleClose()
       } catch (e) {
         setError(e instanceof Error ? e.message : '保存に失敗しました')
       }
@@ -88,11 +98,26 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
       try {
         await deleteField(field.id)
         onMutate()
-        onClose()
+        handleClose()
       } catch (e) {
         setError(e instanceof Error ? e.message : '削除に失敗しました')
       }
     })
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartY.current = e.touches[0].clientY
+    touchStartScrollTop.current = panelRef.current?.scrollTop ?? 0
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartY.current === null) return
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current
+    const isAtTop = touchStartScrollTop.current === 0
+    if (isAtTop && deltaY < -50) {
+      handleClose()
+    }
+    touchStartY.current = null
   }
 
   return (
@@ -103,7 +128,16 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
         handleSaveMemo()
       }}
     >
-      <div className="bg-card rounded-t-2xl w-full max-w-[430px] max-h-[85vh] overflow-y-auto p-5 animate-in slide-in-from-bottom duration-300">
+      <div
+        ref={panelRef}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        className={`bg-card rounded-t-2xl w-full max-w-[430px] max-h-[85vh] overflow-y-auto p-5 ${
+          isClosing
+            ? 'animate-out slide-out-to-bottom duration-[280ms]'
+            : 'animate-in slide-in-from-bottom duration-300'
+        }`}
+      >
         {/* ハンドル */}
         <div className="w-10 h-1 bg-muted rounded-full mx-auto mb-4" />
 
