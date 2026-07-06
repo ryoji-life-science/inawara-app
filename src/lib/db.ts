@@ -53,6 +53,15 @@ export async function initDb() {
       )
     `)
     await db.execute(`ALTER TABLE fields ADD COLUMN memo_updated_at TEXT`).catch(() => {})
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS field_status_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        field_id INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        reporter TEXT NOT NULL DEFAULT '',
+        changed_at TEXT NOT NULL DEFAULT (datetime('now'))
+      )
+    `)
   })()
 
   try {

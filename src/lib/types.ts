@@ -34,3 +34,11 @@ export type UpdateFieldInput = {
   farmer?: string
   memo?: string
 }
+
+export type StatusHistory = {
+  id: number
+  field_id: number
+  status: StatusKey
+  reporter: string
+  changed_at: string
+}

@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import type { Field } from '@/lib/types'
+import { useState, useRef, useCallback, useEffect, useTransition } from 'react'
+import type { Field, StatusHistory } from '@/lib/types'
 import { getStatus } from '@/lib/constants'
+import { getFieldHistory } from '@/actions/fields'
 import { X } from 'lucide-react'
 
 type Props = {
@@ -17,9 +18,18 @@ function formatDate(dateStr: string | null | undefined): string {
 
 export function FieldLogModal({ field, onClose }: Props) {
   const [isClosing, setIsClosing] = useState(false)
+  const [history, setHistory] = useState<StatusHistory[]>([])
+  const [, startTransition] = useTransition()
   const panelRef = useRef<HTMLDivElement>(null)
   const touchStartY = useRef<number | null>(null)
   const touchStartScrollTop = useRef<number>(0)
+
+  useEffect(() => {
+    startTransition(async () => {
+      const data = await getFieldHistory(field.id)
+      setHistory(data)
+    })
+  }, [field.id])
 
   const handleClose = useCallback(() => {
     setIsClosing(true)
@@ -71,7 +81,7 @@ export function FieldLogModal({ field, onClose }: Props) {
           </button>
         </div>
 
-        {/* ステータス */}
+        {/* 現在のステータス */}
         <div className="bg-muted/50 rounded-xl p-4 mb-3">
           <p className="text-xs text-muted-foreground mb-2">現在のステータス</p>
           <div className="flex items-center gap-2">
@@ -94,12 +104,46 @@ export function FieldLogModal({ field, onClose }: Props) {
         </div>
 
         {/* メモ */}
-        <div className="bg-muted/50 rounded-xl p-4">
+        <div className="bg-muted/50 rounded-xl p-4 mb-5">
           <p className="text-xs text-muted-foreground mb-2">メモ</p>
           <p className="text-sm whitespace-pre-wrap">{field.memo || '---'}</p>
           <p className="text-xs text-muted-foreground mt-2">
             記入日：{formatDate(field.memo_updated_at)}
           </p>
+        </div>
+
+        {/* ステータス更新履歴 */}
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground mb-2">ステータス更新履歴</p>
+          {history.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">履歴はありません</p>
+          ) : (
+            <div className="relative pl-6">
+              <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-border" />
+              {history.map((h) => {
+                const hst = getStatus(h.status)
+                return (
+                  <div key={h.id} className="relative py-2.5 flex items-center gap-3">
+                    <div
+                      className="absolute -left-6 w-5 h-5 rounded-full flex items-center justify-center z-10 text-[10px]"
+                      style={{ background: hst.color }}
+                    >
+                      <span>{hst.emoji}</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-between">
+                      <span className="text-sm font-medium">{hst.label}</span>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">{formatDate(h.changed_at)}</p>
+                        {h.reporter && (
+                          <p className="text-[11px] text-muted-foreground">{h.reporter}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

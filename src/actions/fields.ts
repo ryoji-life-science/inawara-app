@@ -4,7 +4,7 @@ import { db, initDb } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { ALL_STATUS_KEYS } from '@/lib/constants'
 import { DEFAULT_FIELDS } from '@/lib/seed-data'
-import type { Field, StatusKey, CreateFieldInput, UpdateFieldInput } from '@/lib/types'
+import type { Field, StatusKey, StatusHistory, CreateFieldInput, UpdateFieldInput } from '@/lib/types'
 
 const MAX_NAME_LENGTH = 120
 const MAX_FARMER_LENGTH = 120
@@ -160,7 +160,30 @@ export async function updateFieldStatus(
     sql: 'UPDATE fields SET status = ?, reporter = ?, memo = COALESCE(?, memo), updated_at = datetime(\'now\') WHERE id = ?',
     args: [normalizedStatus, normalizedReporter, normalizedMemo, normalizedId],
   })
+  await db.execute({
+    sql: 'INSERT INTO field_status_history (field_id, status, reporter) VALUES (?, ?, ?)',
+    args: [normalizedId, normalizedStatus, normalizedReporter],
+  })
   revalidatePath('/')
+}
+
+export async function getFieldHistory(fieldId: number): Promise<StatusHistory[]> {
+  const normalizedId = normalizeFieldId(fieldId)
+  await ensureTable()
+  const result = await db.execute({
+    sql: 'SELECT id, field_id, status, reporter, changed_at FROM field_status_history WHERE field_id = ? ORDER BY changed_at DESC',
+    args: [normalizedId],
+  })
+  return result.rows.map((row) => {
+    const r = row as Record<string, unknown>
+    return {
+      id: readNumber(r, 'id', 'ID'),
+      field_id: readNumber(r, 'field_id', '圃場ID'),
+      status: normalizeStatus(r.status),
+      reporter: typeof r.reporter === 'string' ? r.reporter : '',
+      changed_at: typeof r.changed_at === 'string' ? r.changed_at : '',
+    }
+  })
 }
 
 export async function updateField(id: number, data: UpdateFieldInput): Promise<void> {
