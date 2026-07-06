@@ -1,98 +1,67 @@
 'use client'
 
-import { useState } from 'react'
 import type { Field, StatusKey } from '@/lib/types'
-import { STATUSES, getStatus } from '@/lib/constants'
+import { getStatus } from '@/lib/constants'
 
 type Props = {
   fields: Field[]
   onFieldClick: (id: number) => void
   hiddenFieldIds: Set<number>
+  filter: StatusKey | 'all'
 }
 
-export function FieldList({ fields, onFieldClick, hiddenFieldIds }: Props) {
-  const [filter, setFilter] = useState<StatusKey | 'all'>('all')
-
+export function FieldList({ fields, onFieldClick, hiddenFieldIds, filter }: Props) {
   const sorted = [...fields]
     .filter((f) => !hiddenFieldIds.has(f.id))
     .filter((f) => filter === 'all' || f.status === filter)
     .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
   return (
-    <div>
-      {/* フィルターバー */}
-      <div className="flex gap-2 overflow-x-auto px-3 py-2 scrollbar-none shrink-0">
-        <button
-          onClick={() => setFilter('all')}
-          className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors ${
-            filter === 'all'
-              ? 'bg-foreground text-background'
-              : 'bg-muted text-muted-foreground'
-          }`}
-        >
-          すべて
-        </button>
-        {STATUSES.map((s) => (
-          <button
-            key={s.key}
-            onClick={() => setFilter(filter === s.key ? 'all' : s.key)}
-            className={`shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition-colors text-white`}
-            style={{
-              background: filter === s.key ? s.color : s.color + '60',
-            }}
+    <div className="px-3 pb-3">
+      {sorted.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-8">該当する圃場はありません</p>
+      )}
+      {sorted.map(field => {
+        const st = getStatus(field.status)
+        const dateStr = field.updated_at
+          ? new Date(field.updated_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
+          : '--'
+        return (
+          <div
+            key={field.id}
+            onClick={() => onFieldClick(field.id)}
+            className="bg-card rounded-xl p-3.5 mb-2 shadow-sm flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
           >
-            {s.emoji} {s.label}
-          </button>
-        ))}
-      </div>
-
-      {/* リスト */}
-      <div className="px-3 pb-3">
-        {sorted.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-8">該当する圃場はありません</p>
-        )}
-        {sorted.map(field => {
-          const st = getStatus(field.status)
-          const dateStr = field.updated_at
-            ? new Date(field.updated_at).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
-            : '--'
-          return (
             <div
-              key={field.id}
-              onClick={() => onFieldClick(field.id)}
-              className="bg-card rounded-xl p-3.5 mb-2 shadow-sm flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-lg shrink-0"
+              style={{ background: st.color + '20' }}
             >
-              <div
-                className="w-11 h-11 rounded-full flex items-center justify-center text-lg shrink-0"
-                style={{ background: st.color + '20' }}
-              >
-                {st.emoji}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-base font-semibold">{field.name}</div>
-                <div className="text-sm text-muted-foreground mb-1">{field.farmer}</div>
-                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${st.progress}%`, background: st.color }}
-                  />
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <span
-                  className="text-sm font-semibold px-2 py-1 rounded-lg text-white"
-                  style={{ background: st.color }}
-                >
-                  {st.label}
-                </span>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {field.reporter ? `${field.reporter} ` : ''}{dateStr}
-                </div>
+              {st.emoji}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-base font-semibold">{field.name}</div>
+              <div className="text-sm text-muted-foreground mb-1">{field.farmer}</div>
+              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: `${st.progress}%`, background: st.color }}
+                />
               </div>
             </div>
-          )
-        })}
-      </div>
+            <div className="text-right shrink-0">
+              <span
+                className="text-sm font-semibold px-2 py-1 rounded-lg text-white"
+                style={{ background: st.color }}
+              >
+                {st.label}
+              </span>
+              <div className="text-xs text-muted-foreground mt-1">
+                {field.reporter ? `${field.reporter} ` : ''}{dateStr}
+              </div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

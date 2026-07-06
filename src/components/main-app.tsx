@@ -31,6 +31,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   const [logFieldId, setLogFieldId] = useState<number | null>(null)
   const [createPosition, setCreatePosition] = useState<{ lat: number; lng: number } | null>(null)
   const [hiddenFieldIds, setHiddenFieldIds] = useState<Set<number>>(new Set())
+  const [listFilter, setListFilter] = useState<StatusKey | 'all'>('all')
 
   const filteredFields =
     filter === 'all' ? initialFields : initialFields.filter((field) => field.status === filter)
@@ -152,11 +153,16 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
         ) : tab === 'list' ? (
           /* 一覧タブ */
           <div className="flex-1 overflow-y-auto">
-            <StatusSummary fields={initialFields} />
+            <StatusSummary
+              fields={visibleFields}
+              filter={listFilter}
+              onFilterChange={setListFilter}
+            />
             <FieldList
               fields={initialFields}
               onFieldClick={(id) => setLogFieldId(id)}
               hiddenFieldIds={hiddenFieldIds}
+              filter={listFilter}
             />
           </div>
         ) : (
