@@ -209,7 +209,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
 
       {/* バージョン表示 */}
       <div className="bg-green-600 text-white px-4 py-1.5 text-[10px] text-right shrink-0">
-        v0.2.0
+        v0.3.0
       </div>
 
       {/* 詳細モーダル */}
