@@ -97,30 +97,15 @@ export function FieldLogModal({ field, onClose }: Props) {
           </p>
         </div>
 
-        {/* 記録者 */}
-        <div className="bg-muted/50 rounded-xl p-4 mb-3">
-          <p className="text-xs text-muted-foreground mb-1">記録者</p>
-          <p className="text-sm font-medium">{field.reporter || '---'}</p>
-        </div>
-
-        {/* メモ */}
-        <div className="bg-muted/50 rounded-xl p-4 mb-5">
-          <p className="text-xs text-muted-foreground mb-2">メモ</p>
-          <p className="text-sm whitespace-pre-wrap">{field.memo || '---'}</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            記入日：{formatDate(field.memo_updated_at)}
-          </p>
-        </div>
-
         {/* ステータス更新履歴 */}
-        <div>
-          <p className="text-xs font-semibold text-muted-foreground mb-2">ステータス更新履歴</p>
+        <div className="mb-3">
+          <p className="text-xs font-semibold text-muted-foreground mb-2">ステータス更新履歴（最新5件）</p>
           {history.length === 0 ? (
             <p className="text-xs text-muted-foreground text-center py-4">履歴はありません</p>
           ) : (
             <div className="relative pl-6">
               <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-border" />
-              {history.map((h) => {
+              {history.slice(0, 5).map((h) => {
                 const hst = getStatus(h.status)
                 return (
                   <div key={h.id} className="relative py-2.5 flex items-center gap-3">
@@ -144,6 +129,21 @@ export function FieldLogModal({ field, onClose }: Props) {
               })}
             </div>
           )}
+        </div>
+
+        {/* 記録者 */}
+        <div className="bg-muted/50 rounded-xl p-4 mb-3">
+          <p className="text-xs text-muted-foreground mb-1">記録者</p>
+          <p className="text-sm font-medium">{field.reporter || '---'}</p>
+        </div>
+
+        {/* メモ */}
+        <div className="bg-muted/50 rounded-xl p-4 mb-5">
+          <p className="text-xs text-muted-foreground mb-2">メモ</p>
+          <p className="text-sm whitespace-pre-wrap">{field.memo || '---'}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            記入日：{formatDate(field.memo_updated_at)}
+          </p>
         </div>
       </div>
     </div>
