@@ -131,19 +131,14 @@ export function FieldLogModal({ field, onClose }: Props) {
           )}
         </div>
 
-        {/* 記録者 */}
-        <div className="bg-muted/50 rounded-xl p-4 mb-3">
-          <p className="text-xs text-muted-foreground mb-1">記録者</p>
-          <p className="text-sm font-medium">{field.reporter || '---'}</p>
-        </div>
-
         {/* メモ */}
         <div className="bg-muted/50 rounded-xl p-4 mb-5">
           <p className="text-xs text-muted-foreground mb-2">メモ</p>
           <p className="text-sm whitespace-pre-wrap">{field.memo || '---'}</p>
-          <p className="text-xs text-muted-foreground mt-2">
-            記入日：{formatDate(field.memo_updated_at)}
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-muted-foreground">{field.reporter || '---'}</p>
+            <p className="text-xs text-muted-foreground">{formatDate(field.memo_updated_at)}</p>
+          </div>
         </div>
       </div>
     </div>
