@@ -31,9 +31,11 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
   const touchStartY = useRef<number | null>(null)
   const touchStartScrollTop = useRef<number>(0)
 
-  const currentIdx = getStatusIndex(field.status)
+  const [selectedStatus, setSelectedStatus] = useState<StatusKey>(field.status)
+  const selectedIdx = getStatusIndex(selectedStatus)
   const normalizedMemo = memo.trim()
   const hasMemoChanged = normalizedMemo !== field.memo.trim()
+  const hasStatusChanged = selectedStatus !== field.status
 
   const handleClose = useCallback(() => {
     setIsClosing(true)
@@ -52,30 +54,10 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
     return normalizedReporter
   }
 
-  function handleStatusClick(statusKey: StatusKey) {
+  function handleConfirm() {
     const normalizedReporter = persistReporter()
-    setError(null)
-    startTransition(async () => {
-      try {
-        await updateFieldStatus(field.id, statusKey, normalizedReporter, normalizedMemo)
-        onMutate()
-        handleClose()
-      } catch (e) {
-        setError(e instanceof Error ? e.message : '更新に失敗しました')
-      }
-    })
-  }
 
-  function handleAdvance() {
-    if (currentIdx < STATUSES.length - 1) {
-      handleStatusClick(STATUSES[currentIdx + 1].key)
-    }
-  }
-
-  function handleSaveMemo() {
-    persistReporter()
-
-    if (!hasMemoChanged) {
+    if (!hasStatusChanged && !hasMemoChanged) {
       handleClose()
       return
     }
@@ -83,11 +65,15 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
     setError(null)
     startTransition(async () => {
       try {
-        await updateField(field.id, { memo: normalizedMemo })
+        if (hasStatusChanged) {
+          await updateFieldStatus(field.id, selectedStatus, normalizedReporter, normalizedMemo)
+        } else {
+          await updateField(field.id, { memo: normalizedMemo })
+        }
         onMutate()
         handleClose()
       } catch (e) {
-        setError(e instanceof Error ? e.message : '保存に失敗しました')
+        setError(e instanceof Error ? e.message : '更新に失敗しました')
       }
     })
   }
@@ -125,7 +111,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
       className="fixed inset-0 bg-black/50 z-[200] flex items-end justify-center"
       onClick={(e) => {
         if (e.target !== e.currentTarget || isPending) return
-        handleSaveMemo()
+        handleConfirm()
       }}
     >
       <div
@@ -145,7 +131,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
             <p className="text-sm text-muted-foreground mt-0.5">📍 {field.farmer}</p>
           </div>
           <button
-            onClick={handleSaveMemo}
+            onClick={handleConfirm}
             disabled={isPending}
             className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-muted text-muted-foreground ml-2 disabled:opacity-50"
           >
@@ -157,10 +143,10 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
         <div className="relative pl-7">
           <div className="absolute left-[11px] top-3 bottom-3 w-0.5 bg-border" />
           {STATUSES.map((s, i) => {
-            const isCompleted = i < currentIdx
-            const isCurrent = i === currentIdx
+            const isCompleted = i < selectedIdx
+            const isCurrent = i === selectedIdx
             let dateText = ''
-            if (isCurrent && field.updated_at) {
+            if (s.key === field.status && field.updated_at) {
               const d = new Date(field.updated_at)
               dateText = d.toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' })
               if (field.reporter) dateText = field.reporter + ' · ' + dateText
@@ -169,7 +155,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
             return (
               <div
                 key={s.key}
-                onClick={() => handleStatusClick(s.key)}
+                onClick={() => setSelectedStatus(s.key)}
                 className="relative py-2.5 flex items-center gap-3 cursor-pointer"
               >
                 <div
@@ -237,7 +223,7 @@ export function FieldDetailModal({ field, onClose, onMutate, isHidden, onToggleV
         {/* アクション */}
         <div className="mt-5">
           <button
-            onClick={handleSaveMemo}
+            onClick={handleConfirm}
             disabled={isPending}
             className="w-full py-3.5 rounded-xl text-[15px] font-semibold bg-primary text-primary-foreground disabled:opacity-50"
           >
