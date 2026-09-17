@@ -6,13 +6,12 @@ import { getStatus } from '@/lib/constants'
 type Props = {
   fields: Field[]
   onFieldClick: (id: number) => void
-  hiddenFieldIds: Set<number>
   filter: StatusKey | 'all'
 }
 
-export function FieldList({ fields, onFieldClick, hiddenFieldIds, filter }: Props) {
+export function FieldList({ fields, onFieldClick, filter }: Props) {
   const sorted = [...fields]
-    .filter((f) => !hiddenFieldIds.has(f.id))
+    .filter((f) => !f.hidden)
     .filter((f) => filter === 'all' || f.status === filter)
     .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 

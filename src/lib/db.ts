@@ -53,6 +53,7 @@ export async function initDb() {
       )
     `)
     await db.execute(`ALTER TABLE fields ADD COLUMN memo_updated_at TEXT`).catch(() => {})
+    await db.execute(`ALTER TABLE fields ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0`).catch(() => {})
     await db.execute(`
       CREATE TABLE IF NOT EXISTS field_status_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

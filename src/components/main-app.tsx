@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Field, StatusKey } from '@/lib/types'
 import { getStatus } from '@/lib/constants'
+import { setFieldHidden } from '@/actions/fields'
 import { StatusFilter } from './status-filter'
 import { StatusSummary } from './status-summary'
 import { FieldList } from './field-list'
@@ -30,14 +31,14 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null)
   const [logFieldId, setLogFieldId] = useState<number | null>(null)
   const [createPosition, setCreatePosition] = useState<{ lat: number; lng: number } | null>(null)
-  const [hiddenFieldIds, setHiddenFieldIds] = useState<Set<number>>(new Set())
   const [listFilter, setListFilter] = useState<StatusKey | 'all'>('all')
+  const [, startTransition] = useTransition()
 
   const filteredFields =
     filter === 'all' ? initialFields : initialFields.filter((field) => field.status === filter)
   const textListFields = [...filteredFields].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
-  const visibleFields = initialFields.filter((field) => !hiddenFieldIds.has(field.id))
+  const visibleFields = initialFields.filter((field) => !field.hidden)
   const completedCount = visibleFields.filter((field) => field.status === 'fertilize').length
 
   const selectedField = selectedFieldId
@@ -63,13 +64,13 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   }, [])
 
   const handleToggleVisibility = useCallback((id: number) => {
-    setHiddenFieldIds(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
+    const field = initialFields.find((f) => f.id === id)
+    const nextHidden = !(field?.hidden ?? false)
+    startTransition(async () => {
+      await setFieldHidden(id, nextHidden)
+      router.refresh()
     })
-  }, [])
+  }, [initialFields, router, startTransition])
 
   const handleMutate = useCallback(() => {
     router.refresh()
@@ -118,7 +119,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               {viewMode !== 'text' && (
                 <div className={viewMode === 'split' ? 'flex-1 min-h-0' : 'flex-1'}>
                   <FieldMap
-                    fields={filteredFields.filter(f => !hiddenFieldIds.has(f.id))}
+                    fields={filteredFields.filter(f => !f.hidden)}
                     onFieldClick={handleFieldClick}
                     onLongPress={handleLongPress}
                   />
@@ -161,7 +162,6 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
             <FieldList
               fields={initialFields}
               onFieldClick={(id) => setLogFieldId(id)}
-              hiddenFieldIds={hiddenFieldIds}
               filter={listFilter}
             />
           </div>
@@ -170,7 +170,6 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
           <FieldAdmin
             fields={initialFields}
             onMutate={handleMutate}
-            hiddenFieldIds={hiddenFieldIds}
             onToggleVisibility={handleToggleVisibility}
           />
         )}
@@ -219,7 +218,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
           field={selectedField}
           onClose={handleCloseDetail}
           onMutate={handleMutate}
-          isHidden={hiddenFieldIds.has(selectedField.id)}
+          isHidden={selectedField.hidden}
           onToggleVisibility={handleToggleVisibility}
         />
       )}

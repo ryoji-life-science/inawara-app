@@ -20,6 +20,7 @@ export type Field = {
   updated_at: string
   memo_updated_at: string | null
   created_at: string
+  hidden: boolean
 }
 
 export type CreateFieldInput = {

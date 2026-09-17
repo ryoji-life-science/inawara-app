@@ -9,11 +9,10 @@ import { Check, Pencil, Eye, EyeOff } from 'lucide-react'
 type Props = {
   fields: Field[]
   onMutate: () => void
-  hiddenFieldIds: Set<number>
   onToggleVisibility: (id: number) => void
 }
 
-export function FieldAdmin({ fields, onMutate, hiddenFieldIds, onToggleVisibility }: Props) {
+export function FieldAdmin({ fields, onMutate, onToggleVisibility }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingName, setEditingName] = useState('')
   const [editingDistrict, setEditingDistrict] = useState('')
@@ -50,7 +49,7 @@ export function FieldAdmin({ fields, onMutate, hiddenFieldIds, onToggleVisibilit
 
       <div className="divide-y divide-border">
         {fields.map((field) => {
-          const isHidden = hiddenFieldIds.has(field.id)
+          const isHidden = field.hidden
           return (
             <div key={field.id} className={`flex items-start gap-2 px-4 py-3 ${isHidden ? 'opacity-40' : ''}`}>
               {editingId === field.id ? (

@@ -120,15 +120,26 @@ function toField(row: Record<string, unknown>): Field {
     updated_at: readString(row, 'updated_at', '更新日時'),
     memo_updated_at: typeof row.memo_updated_at === 'string' ? row.memo_updated_at : null,
     created_at: readString(row, 'created_at', '作成日時'),
+    hidden: Number(row.hidden) === 1,
   }
 }
 
 export async function getFields(): Promise<Field[]> {
   await ensureTable()
   const result = await db.execute(
-    'SELECT id, name, farmer, latitude, longitude, status, memo, reporter, updated_at, memo_updated_at, created_at FROM fields ORDER BY name ASC'
+    'SELECT id, name, farmer, latitude, longitude, status, memo, reporter, updated_at, memo_updated_at, created_at, hidden FROM fields ORDER BY name ASC'
   )
   return result.rows.map((row) => toField(row as Record<string, unknown>))
+}
+
+export async function setFieldHidden(id: number, hidden: boolean): Promise<void> {
+  const normalizedId = normalizeFieldId(id)
+  await ensureTable()
+  await db.execute({
+    sql: 'UPDATE fields SET hidden = ? WHERE id = ?',
+    args: [hidden ? 1 : 0, normalizedId],
+  })
+  revalidatePath('/')
 }
 
 export async function createField(data: CreateFieldInput): Promise<void> {
