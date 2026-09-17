@@ -38,3 +38,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .field-name-backup-*.json
+.field-hidden-backup-*.json
