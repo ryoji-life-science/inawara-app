@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useTransition } from 'react'
+import { useState, useCallback, useEffect, useMemo, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Field, StatusKey } from '@/lib/types'
@@ -32,17 +32,30 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   const [logFieldId, setLogFieldId] = useState<number | null>(null)
   const [createPosition, setCreatePosition] = useState<{ lat: number; lng: number } | null>(null)
   const [listFilter, setListFilter] = useState<StatusKey | 'all'>('all')
+  const [hiddenOverrides, setHiddenOverrides] = useState<Record<number, boolean>>({})
   const [, startTransition] = useTransition()
 
+  // サーバーから最新データが届いたら、楽観的な上書きは不要になるためクリアする
+  useEffect(() => {
+    setHiddenOverrides({})
+  }, [initialFields])
+
+  const fields = useMemo(() => {
+    if (Object.keys(hiddenOverrides).length === 0) return initialFields
+    return initialFields.map((f) =>
+      f.id in hiddenOverrides ? { ...f, hidden: hiddenOverrides[f.id] } : f
+    )
+  }, [initialFields, hiddenOverrides])
+
   const filteredFields =
-    filter === 'all' ? initialFields : initialFields.filter((field) => field.status === filter)
+    filter === 'all' ? fields : fields.filter((field) => field.status === filter)
   const textListFields = [...filteredFields].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
-  const visibleFields = initialFields.filter((field) => !field.hidden)
+  const visibleFields = fields.filter((field) => !field.hidden)
   const completedCount = visibleFields.filter((field) => field.status === 'fertilize').length
 
   const selectedField = selectedFieldId
-    ? initialFields.find((field) => field.id === selectedFieldId) ?? null
+    ? fields.find((field) => field.id === selectedFieldId) ?? null
     : null
 
   const handleLongPress = useCallback((lat: number, lng: number) => {
@@ -64,13 +77,27 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
   }, [])
 
   const handleToggleVisibility = useCallback((id: number) => {
-    const field = initialFields.find((f) => f.id === id)
+    const field = fields.find((f) => f.id === id)
     const nextHidden = !(field?.hidden ?? false)
+
+    // 即座に見た目を更新（楽観的UI）。実際のDB反映はバックグラウンドで待つ
+    setHiddenOverrides((prev) => ({ ...prev, [id]: nextHidden }))
+
     startTransition(async () => {
-      await setFieldHidden(id, nextHidden)
-      router.refresh()
+      try {
+        await setFieldHidden(id, nextHidden)
+      } catch (e) {
+        console.error(e)
+        setHiddenOverrides((prev) => {
+          const next = { ...prev }
+          delete next[id]
+          return next
+        })
+      } finally {
+        router.refresh()
+      }
     })
-  }, [initialFields, router, startTransition])
+  }, [fields, router])
 
   const handleMutate = useCallback(() => {
     router.refresh()
@@ -111,7 +138,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
             <StatusFilter
               filter={filter}
               onFilterChange={setFilter}
-              fields={initialFields}
+              fields={fields}
             />
 
             {/* 地図 + テキストリスト */}
@@ -160,7 +187,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               onFilterChange={setListFilter}
             />
             <FieldList
-              fields={initialFields}
+              fields={fields}
               onFieldClick={(id) => setLogFieldId(id)}
               filter={listFilter}
             />
@@ -168,7 +195,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
         ) : (
           /* 管理タブ */
           <FieldAdmin
-            fields={initialFields}
+            fields={fields}
             onMutate={handleMutate}
             onToggleVisibility={handleToggleVisibility}
           />
@@ -225,7 +252,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
 
       {/* ログモーダル（一覧タブ用） */}
       {logFieldId && (() => {
-        const f = initialFields.find(f => f.id === logFieldId)
+        const f = fields.find(f => f.id === logFieldId)
         return f ? <FieldLogModal key={f.id} field={f} onClose={() => setLogFieldId(null)} /> : null
       })()}
 
