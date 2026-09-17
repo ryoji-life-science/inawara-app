@@ -63,6 +63,10 @@ export async function initDb() {
         changed_at TEXT NOT NULL DEFAULT (datetime('now'))
       )
     `)
+    await db.execute(`
+      CREATE INDEX IF NOT EXISTS idx_field_status_history_field_id
+      ON field_status_history(field_id, changed_at)
+    `)
   })()
 
   try {
