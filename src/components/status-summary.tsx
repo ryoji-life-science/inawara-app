@@ -27,7 +27,7 @@ export function StatusSummary({ fields, filter, onFilterChange }: Props) {
             className={`text-center py-2.5 px-1 rounded-xl shadow-sm transition-all ${
               active ? 'ring-2 scale-[1.04]' : 'bg-card'
             }`}
-            style={active ? { background: s.color + '18', ringColor: s.color } : undefined}
+            style={active ? { background: s.color + '18', '--tw-ring-color': s.color } as React.CSSProperties : undefined}
           >
             <div className="text-xl font-bold" style={{ color: s.color }}>{count}</div>
             <div className="text-[10px] text-muted-foreground mt-0.5">{s.emoji} {s.label}</div>
