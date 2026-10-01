@@ -142,18 +142,19 @@ export async function setFieldHidden(id: number, hidden: boolean): Promise<void>
   revalidatePath('/')
 }
 
-export async function createField(data: CreateFieldInput): Promise<void> {
+export async function createField(data: CreateFieldInput): Promise<number> {
   const name = normalizeRequiredText(data.name, '圃場名', MAX_NAME_LENGTH)
   const farmer = normalizeOptionalText(data.farmer, '地区名', MAX_FARMER_LENGTH)
   const latitude = normalizeCoordinate(data.latitude, '緯度', -90, 90)
   const longitude = normalizeCoordinate(data.longitude, '経度', -180, 180)
 
   await ensureTable()
-  await db.execute({
+  const result = await db.execute({
     sql: 'INSERT INTO fields (name, farmer, latitude, longitude) VALUES (?, ?, ?, ?)',
     args: [name, farmer, latitude, longitude],
   })
   revalidatePath('/')
+  return Number(result.lastInsertRowid)
 }
 
 export async function updateFieldStatus(

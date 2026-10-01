@@ -10,7 +10,7 @@ import { FieldList } from './field-list'
 import { FieldDetailModal } from './field-detail-modal'
 import { FieldLogModal } from './field-log-modal'
 import { FieldCreateDialog } from './field-create-dialog'
-import { FieldAdmin } from './field-admin'
+import { FieldSetup } from './field-setup'
 import { Map as MapIcon, List, Settings, ChevronLeft } from 'lucide-react'
 
 const FieldMap = dynamic(() => import('./field-map').then(m => m.FieldMap), {
@@ -129,7 +129,7 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               </button>
               <h2 className="flex-1 text-center text-base font-semibold pr-12">設定</h2>
             </div>
-            <FieldAdmin
+            <FieldSetup
               fields={fields}
               onMutate={handleMutate}
               onToggleVisibility={handleToggleVisibility}

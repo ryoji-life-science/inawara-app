@@ -29,3 +29,9 @@ export const MAP_DEFAULT_ZOOM = 14
 
 export const DISTRICTS = ['福井/西', '中里', '東'] as const
 export type District = typeof DISTRICTS[number]
+
+// 地区ごとの地点名の番号帯の開始値（未定義の地区は自動採番しない）
+export const DISTRICT_NUMBER_BASE: Partial<Record<string, number>> = {
+  '福井/西': 0,
+  '東': 1000,
+}
