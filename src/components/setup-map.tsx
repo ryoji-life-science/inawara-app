@@ -10,25 +10,30 @@ export type PendingPin = { key: string; lat: number; lng: number }
 type Props = {
   fields: Field[]
   pending: PendingPin[]
+  draft: { lat: number; lng: number } | null
+  onDraftMove: (lat: number, lng: number) => void
   selectedId: number | null
   addMode: boolean
   onSelect: (id: number) => void
   onMapClick: (lat: number, lng: number) => void
 }
 
-export function SetupMap({ fields, pending, selectedId, addMode, onSelect, onMapClick }: Props) {
+export function SetupMap({ fields, pending, draft, onDraftMove, selectedId, addMode, onSelect, onMapClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
   const layerRef = useRef<L.LayerGroup | null>(null)
   const addModeRef = useRef(addMode)
   const onMapClickRef = useRef(onMapClick)
   const onSelectRef = useRef(onSelect)
+  const onDraftMoveRef = useRef(onDraftMove)
+  const draftLayerRef = useRef<L.LayerGroup | null>(null)
 
   useEffect(() => {
     addModeRef.current = addMode
     onMapClickRef.current = onMapClick
     onSelectRef.current = onSelect
-  }, [addMode, onMapClick, onSelect])
+    onDraftMoveRef.current = onDraftMove
+  }, [addMode, onMapClick, onSelect, onDraftMove])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -40,6 +45,7 @@ export function SetupMap({ fields, pending, selectedId, addMode, onSelect, onMap
       maxZoom: 19,
     }).addTo(map)
     layerRef.current = L.layerGroup().addTo(map)
+    draftLayerRef.current = L.layerGroup().addTo(map)
     map.on('click', (e: L.LeafletMouseEvent) => {
       if (addModeRef.current) onMapClickRef.current(e.latlng.lat, e.latlng.lng)
     })
@@ -53,6 +59,7 @@ export function SetupMap({ fields, pending, selectedId, addMode, onSelect, onMap
       map.remove()
       mapRef.current = null
       layerRef.current = null
+      draftLayerRef.current = null
     }
   }, [])
 
@@ -93,6 +100,25 @@ export function SetupMap({ fields, pending, selectedId, addMode, onSelect, onMap
       L.marker([p.lat, p.lng], { icon, interactive: false }).addTo(layer)
     })
   }, [fields, pending, selectedId])
+
+  useEffect(() => {
+    const layer = draftLayerRef.current
+    if (!layer) return
+    layer.clearLayers()
+    if (!draft) return
+    const icon = L.divIcon({
+      className: '',
+      html: '<div class="custom-marker" style="background:#1565C0;outline:3px solid #fff">＋</div>',
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    })
+    L.marker([draft.lat, draft.lng], { icon, draggable: true, zIndexOffset: 1000 })
+      .on('dragend', (e) => {
+        const pos = (e.target as L.Marker).getLatLng()
+        onDraftMoveRef.current(pos.lat, pos.lng)
+      })
+      .addTo(layer)
+  }, [draft])
 
   return (
     <div className={`w-full h-full ${addMode ? 'cursor-crosshair' : ''}`}>

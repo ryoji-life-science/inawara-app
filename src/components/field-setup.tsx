@@ -41,6 +41,7 @@ export function FieldSetup({ fields, onMutate, onToggleVisibility }: Props) {
   const [addMode, setAddMode] = useState(false)
   const [district, setDistrict] = useState<string>(DISTRICTS[0])
   const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [draft, setDraft] = useState<{ lat: number; lng: number } | null>(null)
   const [pending, setPending] = useState<Pending[]>([])
   const [addedIds, setAddedIds] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -48,8 +49,17 @@ export function FieldSetup({ fields, onMutate, onToggleVisibility }: Props) {
   const unsynced = pending.filter((p) => !fields.some((f) => f.name === p.name))
   const selectedField = selectedId ? fields.find((f) => f.id === selectedId) ?? null : null
 
-  async function handleMapClick(lat: number, lng: number) {
-    const name = nextName(district, fields, unsynced)
+  const draftName = nextName(district, fields, unsynced)
+
+  function handleMapClick(lat: number, lng: number) {
+    setDraft({ lat, lng })
+  }
+
+  async function handleConfirmAdd() {
+    if (!draft) return
+    const { lat, lng } = draft
+    setDraft(null)
+    const name = draftName
     const pin: Pending = { key: `${name}-${Date.now()}`, name, lat, lng }
     setPending((prev) => [...prev, pin])
     setError(null)
@@ -82,7 +92,7 @@ export function FieldSetup({ fields, onMutate, onToggleVisibility }: Props) {
       <div className="px-3 py-2 border-b border-border shrink-0 bg-card">
         <div className="flex items-center gap-2">
           <button
-            onClick={() => { setAddMode((v) => !v); setSelectedId(null) }}
+            onClick={() => { setAddMode((v) => !v); setSelectedId(null); setDraft(null) }}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold ${
               addMode ? 'bg-blue-600 text-white' : 'bg-muted text-foreground'
             }`}
@@ -94,7 +104,7 @@ export function FieldSetup({ fields, onMutate, onToggleVisibility }: Props) {
             <>
               <select
                 value={district}
-                onChange={(e) => setDistrict(e.target.value)}
+                onChange={(e) => { setDistrict(e.target.value) }}
                 className="border border-border rounded-lg px-2 py-2 text-sm bg-card flex-1 min-w-0"
               >
                 {DISTRICTS.map((d) => (
@@ -114,7 +124,7 @@ export function FieldSetup({ fields, onMutate, onToggleVisibility }: Props) {
         </div>
         {addMode && (
           <p className="text-xs text-blue-700 mt-1.5">
-            地図をタップすると「{district}」に地点が追加されます（名称は自動採番）
+            地図をタップして位置を決め、「追加」で確定します（地区：{district}、名称は自動採番）
           </p>
         )}
         {error && <p className="text-xs text-red-600 mt-1.5">{error}</p>}
@@ -124,11 +134,34 @@ export function FieldSetup({ fields, onMutate, onToggleVisibility }: Props) {
         <SetupMap
           fields={fields}
           pending={unsynced}
+          draft={draft}
+          onDraftMove={(lat, lng) => setDraft({ lat, lng })}
           selectedId={selectedId}
           addMode={addMode}
           onSelect={setSelectedId}
           onMapClick={handleMapClick}
         />
+        {addMode && draft && (
+          <div className="absolute bottom-3 left-3 right-3 z-[1100] bg-card border border-border rounded-xl shadow-lg p-3 flex items-center gap-2">
+            <div className="flex-1 min-w-0 text-sm">
+              <span className="font-semibold">{draftName}</span>
+              <span className="text-xs text-muted-foreground ml-2">{district}</span>
+              <p className="text-[11px] text-muted-foreground">ピンはドラッグで微調整できます</p>
+            </div>
+            <button
+              onClick={() => setDraft(null)}
+              className="px-3 py-2.5 rounded-lg text-sm bg-muted"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleConfirmAdd}
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold bg-primary text-primary-foreground"
+            >
+              追加
+            </button>
+          </div>
+        )}
         {selectedField && (
           <SelectedPanel
             key={selectedField.id}
