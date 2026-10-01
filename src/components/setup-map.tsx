@@ -94,5 +94,9 @@ export function SetupMap({ fields, pending, selectedId, addMode, onSelect, onMap
     })
   }, [fields, pending, selectedId])
 
-  return <div ref={containerRef} className={`w-full h-full ${addMode ? 'cursor-crosshair' : ''}`} />
+  return (
+    <div className={`w-full h-full ${addMode ? 'cursor-crosshair' : ''}`}>
+      <div ref={containerRef} className="w-full h-full" />
+    </div>
+  )
 }
