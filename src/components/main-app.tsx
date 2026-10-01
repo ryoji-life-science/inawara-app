@@ -4,9 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import type { Field, StatusKey } from '@/lib/types'
-import { getStatus } from '@/lib/constants'
 import { setFieldHidden } from '@/actions/fields'
-import { StatusFilter } from './status-filter'
 import { StatusSummary } from './status-summary'
 import { FieldList } from './field-list'
 import { FieldDetailModal } from './field-detail-modal'
@@ -21,13 +19,10 @@ const FieldMap = dynamic(() => import('./field-map').then(m => m.FieldMap), {
 })
 
 type Tab = 'map' | 'list' | 'admin'
-type ViewMode = 'map' | 'split' | 'text'
 
 export function MainApp({ initialFields }: { initialFields: Field[] }) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('map')
-  const [viewMode, setViewMode] = useState<ViewMode>('split')
-  const [filter, setFilter] = useState<StatusKey | 'all'>('all')
   const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null)
   const [logFieldId, setLogFieldId] = useState<number | null>(null)
   const [createPosition, setCreatePosition] = useState<{ lat: number; lng: number } | null>(null)
@@ -46,10 +41,6 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
       f.id in hiddenOverrides ? { ...f, hidden: hiddenOverrides[f.id] } : f
     )
   }, [initialFields, hiddenOverrides])
-
-  const filteredFields =
-    filter === 'all' ? fields : fields.filter((field) => field.status === filter)
-  const textListFields = [...filteredFields].sort((a, b) => a.name.localeCompare(b.name, 'ja'))
 
   const visibleFields = fields.filter((field) => !field.hidden)
   const completedCount = visibleFields.filter((field) => field.status === 'fertilize').length
@@ -116,68 +107,13 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
       {/* メインコンテンツ */}
       <main className="flex-1 overflow-hidden flex flex-col">
         {tab === 'map' ? (
-          <>
-            {/* ビュー切り替え */}
-            <div className="flex bg-muted rounded-lg p-0.5 mx-3 my-2 shrink-0">
-              {(['split', 'map', 'text'] as ViewMode[]).map(mode => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-all ${
-                    viewMode === mode
-                      ? 'bg-card text-foreground shadow-sm font-semibold'
-                      : 'text-muted-foreground'
-                  }`}
-                >
-                  {mode === 'split' ? '両方' : mode === 'map' ? '地図' : '一覧'}
-                </button>
-              ))}
-            </div>
-
-            {/* フィルター */}
-            <StatusFilter
-              filter={filter}
-              onFilterChange={setFilter}
-              fields={fields}
+          <div className="flex-1 min-h-0">
+            <FieldMap
+              fields={visibleFields}
+              onFieldClick={handleFieldClick}
+              onLongPress={handleLongPress}
             />
-
-            {/* 地図 + テキストリスト */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {viewMode !== 'text' && (
-                <div className={viewMode === 'split' ? 'flex-1 min-h-0' : 'flex-1'}>
-                  <FieldMap
-                    fields={filteredFields.filter(f => !f.hidden)}
-                    onFieldClick={handleFieldClick}
-                    onLongPress={handleLongPress}
-                  />
-                </div>
-              )}
-              {viewMode !== 'map' && (
-                <div className={`overflow-y-auto border-t border-border ${viewMode === 'split' ? 'max-h-[40%]' : 'flex-1'}`}>
-                  {textListFields.map(field => {
-                      const st = getStatus(field.status)
-                      return (
-                        <div
-                          key={field.id}
-                          onClick={() => handleFieldClick(field.id)}
-                          className="flex items-center px-3.5 py-2.5 border-b border-muted gap-2 cursor-pointer text-sm active:bg-muted/50"
-                        >
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: st.color }} />
-                          <span className="flex-1 font-medium truncate">{field.name}</span>
-                          <span className="text-xs text-muted-foreground shrink-0">{field.farmer}</span>
-                          <span
-                            className="text-[11px] font-semibold px-2 py-0.5 rounded-lg text-white shrink-0"
-                            style={{ background: st.color }}
-                          >
-                            {st.label}
-                          </span>
-                        </div>
-                      )
-                    })}
-                </div>
-              )}
-            </div>
-          </>
+          </div>
         ) : tab === 'list' ? (
           /* 一覧タブ */
           <div className="flex-1 overflow-y-auto">
