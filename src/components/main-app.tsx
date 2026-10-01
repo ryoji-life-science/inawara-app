@@ -11,18 +11,19 @@ import { FieldDetailModal } from './field-detail-modal'
 import { FieldLogModal } from './field-log-modal'
 import { FieldCreateDialog } from './field-create-dialog'
 import { FieldAdmin } from './field-admin'
-import { Map as MapIcon, List, Settings } from 'lucide-react'
+import { Map as MapIcon, List, Settings, ChevronLeft } from 'lucide-react'
 
 const FieldMap = dynamic(() => import('./field-map').then(m => m.FieldMap), {
   ssr: false,
   loading: () => <div className="flex-1 bg-muted animate-pulse" />,
 })
 
-type Tab = 'map' | 'list' | 'admin'
+type Tab = 'map' | 'list'
 
 export function MainApp({ initialFields }: { initialFields: Field[] }) {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('map')
+  const [showSettings, setShowSettings] = useState(false)
   const [selectedFieldId, setSelectedFieldId] = useState<number | null>(null)
   const [logFieldId, setLogFieldId] = useState<number | null>(null)
   const [createPosition, setCreatePosition] = useState<{ lat: number; lng: number } | null>(null)
@@ -101,12 +102,40 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
         <h1 className="text-lg font-semibold flex items-center gap-2">
           <span>🌾</span> 稲藁進捗管理
         </h1>
-        <span className="text-xs opacity-90">完了 {completedCount}/{visibleFields.length}</span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs opacity-90">完了 {completedCount}/{visibleFields.length}</span>
+          <button
+            onClick={() => setShowSettings(true)}
+            aria-label="設定"
+            className="w-8 h-8 flex items-center justify-center rounded-full active:bg-white/20"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
       </header>
 
       {/* メインコンテンツ */}
       <main className="flex-1 overflow-hidden flex flex-col">
-        {tab === 'map' ? (
+        {showSettings ? (
+          /* 設定画面 */
+          <>
+            <div className="flex items-center gap-1 px-2 py-2 border-b border-border shrink-0">
+              <button
+                onClick={() => setShowSettings(false)}
+                className="flex items-center text-sm text-primary px-1 py-1 active:opacity-60"
+              >
+                <ChevronLeft className="w-5 h-5" />
+                戻る
+              </button>
+              <h2 className="flex-1 text-center text-base font-semibold pr-12">設定</h2>
+            </div>
+            <FieldAdmin
+              fields={fields}
+              onMutate={handleMutate}
+              onToggleVisibility={handleToggleVisibility}
+            />
+          </>
+        ) : tab === 'map' ? (
           <div className="flex-1 min-h-0">
             <FieldMap
               fields={visibleFields}
@@ -128,17 +157,11 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
               filter={listFilter}
             />
           </div>
-        ) : (
-          /* 管理タブ */
-          <FieldAdmin
-            fields={fields}
-            onMutate={handleMutate}
-            onToggleVisibility={handleToggleVisibility}
-          />
-        )}
+        ) : null}
       </main>
 
       {/* 下部ナビゲーション */}
+      {!showSettings && (
       <nav className="h-16 bg-card border-t border-border flex shrink-0 z-50">
         <button
           onClick={() => setTab('map')}
@@ -158,16 +181,8 @@ export function MainApp({ initialFields }: { initialFields: Field[] }) {
           <List className="w-6 h-6" />
           一覧
         </button>
-        <button
-          onClick={() => setTab('admin')}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 text-[10px] transition-colors ${
-            tab === 'admin' ? 'text-primary' : 'text-muted-foreground'
-          }`}
-        >
-          <Settings className="w-6 h-6" />
-          管理
-        </button>
       </nav>
+      )}
 
       {/* バージョン表示 */}
       <div className="bg-green-600 text-white px-4 py-1.5 text-[10px] text-right shrink-0">
